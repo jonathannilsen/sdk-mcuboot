@@ -61,8 +61,11 @@ void pm_s2ram_mark_check_and_mediate(void)
 
     if (reset_reason != NRF_RESETINFO_RESETREAS_LOCAL_UNRETAINED_MASK) {
         /* Normal boot */
+        NRF_RESETINFO->ERROR.ADDRESS++;;
         return;
     }
+
+    NRF_RESETINFO->ERROR.STATUS++;
 
     /* S2RAM resume expected, do doublecheck */
     if (mcuboot_resume.magic == MCUBOOT_S2RAM_RESUME_MAGIC) {
@@ -108,5 +111,8 @@ void pm_s2ram_mark_check_and_mediate(void)
     );
 
 resume_failed:
+    NRF_RESETINFO->ERROR.STATUS = 0xFFFFFFFF;
+    while (1) {
+    }
     FIH_PANIC;
 }
