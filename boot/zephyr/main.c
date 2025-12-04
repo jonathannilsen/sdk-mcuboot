@@ -441,6 +441,10 @@ static void do_boot(struct boot_rsp *rsp)
     SCB->VTOR = (uint32_t)__vector_relay_table;
 #endif
 #endif /* CONFIG_BOOT_INTR_VEC_RELOC */
+#if defined(CONFIG_NRF_PLATFORM_HALTIUM)
+    NRF_CPUCONF->INITSVTOR = (uintptr_t)vt;
+#endif
+
 
 #ifdef CONFIG_CPU_CORTEX_M
     __set_MSP(vt->msp);
