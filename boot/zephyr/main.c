@@ -250,9 +250,11 @@ struct arm_vector_table {
 #endif
 };
 
-#ifdef CONFIG_NCS_MCUBOOT_LOAD_PERIPHCONF
+#if defined(CONFIG_NCS_MCUBOOT_LOAD_PERIPHCONF) || \
+    defined(CONFIG_NCS_MCUBOOT_MPCCONF_STATIC_WRITE_PROTECTION)
 static void handle_late_fatal_error(void)
 {
+    /* TODO: should be configured in common for MPCCONF/PERIPHCONF */
     if (IS_ENABLED(CONFIG_NCS_MCUBOOT_LOAD_PERIPHCONF_RESET_ON_ERROR)) {
         NVIC_SystemReset();
     } else {
@@ -265,6 +267,16 @@ static void handle_late_fatal_error(void)
 
 static void __ramfunc jump_in(struct arm_vector_table *vt)
 {
+#ifdef CONFIG_NCS_MCUBOOT_MPCCONF_STATIC_WRITE_PROTECTION
+    int rc;
+
+    /* Update the global domain MPC configuration to write protect the firmware being booted. */
+    rc = nrf_load_mpcconf();
+    if (rc) {
+        handle_late_fatal_error();
+    }
+#endif
+
 #ifdef CONFIG_CPU_CORTEX_M
         __set_MSP(vt->msp);
 #endif
@@ -381,6 +393,10 @@ static void __ramfunc jump_in(struct arm_vector_table *vt)
 
 static void do_boot(struct boot_rsp *rsp)
 {
+#if defined(CONFIG_NCS_MCUBOOT_MPCCONF_STATIC_WRITE_PROTECTION) && defined(MCUBOOT_DIRECT_XIP)
+    nrf_load_mpcconf_update_active_slot(rsp);
+#endif
+
     /* vt is static as it shall not land on the stack,
      * as this procedure modifies stack pointer before usage of *vt
      */

@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+struct boot_rsp;
 struct boot_loader_state;
 struct image_header;
 struct flash_area;
@@ -29,6 +30,9 @@ int nrf_add_custom_tlv_data(struct boot_loader_state *state, int slot);
 
 /* Configure peripherals using parameters loaded from PERIPHCONF TLVs. */
 int nrf_load_periphconf(void);
+
+int nrf_load_mpcconf_update_active_slot(const struct boot_rsp *rsp);
+int nrf_load_mpcconf(void);
 
 #ifdef __cplusplus
 }
